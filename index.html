@@ -1,0 +1,249 @@
+﻿<!DOCTYPE html>
+<?xml version="1.0" encoding="utf-8" ?> 
+<html lang="en">
+<head>
+		<meta name="viewport" content="width=device-width" />
+		<link rel="stylesheet" href="bootstrap-1.2.0.min.css">
+		<script src="jquery-1.6.2.min.js" type="text/javascript"></script>
+		<script src="jquery.tmpl.min.js" type="text/javascript"></script>
+		<script src="knockout-1.2.1.js" type="text/javascript"></script>
+		<link rel="stylesheet" href="common.css">
+		<link rel="stylesheet" media="screen and (min-device-width: 801px)" href="desktop.css" />
+		<link rel="stylesheet" media="screen and (max-device-width: 800px)" href="mobile.css" />
+		<title>Hvem Skylder Hvad</title>
+	</head>
+<body>
+
+
+<div id="main-container" >
+	<h1>Hvem Skyder Hvad?</h1>
+
+		<div id="output" class="alert-message block-message" data-bind="visible: debts().length > 0">
+			<table data-bind="template: {name:'personOutputTemplate', foreach:debts}" ></table>
+			<p>
+			Beløb pr person: <strong><span data-bind="text: perNose" ></span></strong>
+			</p>
+			<p><br/>
+				link hertil: 
+				<a data-bind="attr: { href: link}" ><span data-bind="text: link"/></a>
+			</p>
+		</div>		
+	
+		<div>
+			<table class="zebra-striped" id="input-table">
+				<thead>
+					<th>Navn</th>
+					<th>Beløb</th>
+					<th></th>
+				</thead>
+				<tbody data-bind="template: {name:'personInputTemplate', foreach:persons}" ></tbody>
+				<tfoot>
+					<tr>
+						<td colspan="2"><button class="btn r-btn" data-bind="click: addNewPerson">Tilføj</button></td>
+						<td class="r-td"><button class="btn primary r-btn" type="submit" data-bind="click: recalc">Beregn</button></td>
+					</tr>
+				</tfoot>
+			</table>
+		</div>
+</div>
+
+
+<script id="personInputTemplate" type="text/html">
+<tr>
+	<td><input type="text" placeholder="navn" data-bind="value: name" /></td>
+	<td><input type="text" placeholder="beløb" data-bind="value: amount, event: {change: update}" /></td>
+	<td class="r-td"><button class="btn danger r-btn" data-bind="click: remove" >X</button></td>
+</tr>
+</script>
+
+<script id="personOutputTemplate" type="text/html">
+<tr>
+	<td><strong><span class="name" data-bind="text: giver.name" /></strong></td>
+	<td>skylder</td>
+	<td><strong><span class="name" data-bind="text: taker.name" /></strong></td>
+	<td><span data-bind="text: amount.toFixed(2)" /></td>
+</tr>
+</script>
+
+<script>
+	function Person(name, amount){
+		return {
+			name: ko.observable(name),
+			amount: ko.observable(amount),
+			remove: function(){
+				if(viewModel.persons().length == 1){ // dont remove the last person
+					this.name("");
+					this.amount("");
+				} else {
+					viewModel.persons.remove(this);
+					setTimeout(function(){
+						viewModel.recalc();
+					} ,500);
+				}
+			},
+			getAmount: function(){
+				return parseInt(this.amount());
+			},
+			update: function(){
+				setTimeout(function(){
+					viewModel.recalc();
+				} ,500);
+			}
+		};
+	};
+	
+	function Dept(giver, taker, amount){
+		return {
+			giver: giver,
+			taker: taker,
+			amount: amount
+		}
+	};
+
+	function Calculator() {
+		return {
+			calculate : function(persons, debts, perNose){
+
+				var total_value = 0;
+
+				var person_count = 0;
+
+				for(var i = 0; i < persons().length; i++){
+					value = persons()[i].getAmount();
+					if(isNaN(value)){
+						continue;
+					}
+					total_value += value;
+					person_count++;
+				}
+
+				var per_nose_value = total_value / person_count;
+				var owers = [];
+
+				perNose(per_nose_value.toFixed(2));
+
+				for(var i = 0; i < persons().length; i++){
+					if(persons()[i].getAmount() != per_nose_value){
+						if(isNaN(persons()[i].getAmount())){
+							continue;
+						}					
+						owers.push({
+									amount: persons()[i].getAmount(), 
+									name: persons()[i].name
+								  });
+					}
+				}		
+
+				// BUBBLESORT the owers array
+				var x, y, holder;
+				for(x = 0; x < owers.length; x++) {
+					for(y = 0; y < (owers.length-1); y++) {
+						if(owers[y].amount > owers[y+1].amount) {
+							holder = owers[y+1];
+							owers[y+1] = owers[y];
+							owers[y] = holder;
+						}
+					}
+				}
+
+				var i = 0;
+				var j = owers.length - 1;
+				var iterations = 0;
+				var transfer = 0;
+				debts([]); // clear
+
+				while(i < j && iterations < 100) {
+					transfer = Math.min(per_nose_value - owers[i].amount, owers[j].amount - per_nose_value);
+					
+					owers[i].amount += transfer;
+					owers[j].amount -= transfer;
+					
+					debts.push(new Dept(owers[i], owers[j], transfer));
+					
+					if(owers[i].amount == per_nose_value) i++;
+					if(owers[j].amount == per_nose_value) j--;
+					iterations++;
+				}
+			}
+		}
+	}	
+	
+	var viewModel = {
+		calculator : new Calculator(),
+		persons: ko.observableArray(),
+		debts: ko.observableArray(),
+		perNose: ko.observable(),
+		link: ko.observable(),
+		
+		addPerson: function(name, amount){
+			this.persons.push(new Person(name,amount));
+		},
+		addNewPerson: function(){
+			this.persons.push(new Person("",""));
+			this.recalc();
+			$('#input-table tbody tr:last input:first').focus();
+		},
+		
+		recalc : function(){
+			this.calculator.calculate(this.persons, this.debts, this.perNose);
+			this.updateLink();
+		},
+		
+		updateLink : function(){
+			var url = document.location.toString();
+			// remove current params (if any)
+			if (url.indexOf("?") != -1) {
+			  var url = url.split('?')[0];
+			}
+			var names = [];
+			var amounts = [];
+			for(var i = 0; i < this.persons().length; i++){
+				names.push(this.persons()[i].name());
+				amounts.push(this.persons()[i].getAmount());
+			}
+			names = names.join(",");
+			amounts = amounts.join(",");
+			var params = "?names="+names+"&amounts="+amounts;
+			this.link(url+params);
+		}
+	};
+
+	ko.applyBindings(viewModel);
+	
+	
+	
+	$(document).ready(function(){
+		
+		function gup(name) // thanks to: http://www.netlobo.com/url_query_string_javascript.html
+		{
+			name = name.replace(/[\[]/,"\\\[").replace(/[\]]/,"\\\]");
+			var regexS = "[\\?&]"+name+"=([^&#]*)";
+			var regex = new RegExp( regexS );
+			var results = regex.exec( window.location.href );
+			if( results == null )
+				return "";
+			else
+				return results[1];
+		}		
+		
+		
+		// load potential params
+		var url = document.location.toString();
+		
+		if (url.indexOf("?") != -1) {
+		  var names = gup("names").split(",");
+		  var amounts = gup("amounts").split(",")
+		  for(var i = 0; i < names.length; i++){
+			viewModel.addPerson(names[i],amounts[i]);
+		  }
+		  viewModel.recalc();
+		  
+		} else {
+			viewModel.addPerson("","");
+		}
+	});
+	
+</script>
+
+</body>
+</html>
