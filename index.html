@@ -13,7 +13,7 @@
 		<link rel="stylesheet" href="common.css?vers=2">
 		<link rel="stylesheet" media="screen and (min-device-width: 801px)" href="desktop.css?vers=2" />
 		<link rel="stylesheet" media="screen and (max-device-width: 800px)" href="mobile.css?vers=2" />
-		<title id="pagetitle"></title>
+		<title id="pagetitle" data-bind="text: t.app.title">Hvem Skylder Hvad</title>
 	</head>
 <body>
 
@@ -75,7 +75,7 @@
 <script id="personOutputTemplate" type="text/html">
 <tr>
 	<td><strong><span class="name" data-bind="text: giver.name" /></strong></td>
-	<td data-bind="text: t.result.owes">skylder</td>
+	<td data-bind="text: $parent.t.result.owes">skylder</td>
 	<td><strong><span class="name" data-bind="text: taker.name" /></strong></td>
 	<td><span data-bind="text: amount.toFixed(2)" /></td>
 </tr>
@@ -247,11 +247,11 @@
 			names = names.join(",");
 			amounts = amounts.join(",");
 
-			if(names =! null && names != ""){
+			if(names != null && names != ""){
 				var params = "names="+names+"&amounts="+amounts;
 				this.link(url+"?"+params);
 			} else {
-				this.link("");
+				this.link("g");
 			}
 		},
 		
@@ -273,7 +273,7 @@
 			return true;
 		},
 		
-		t : $.jsperanto.dic(),
+		t : $.jsperanto.dic()
 		
 	};
 
@@ -285,7 +285,7 @@
 	
 	$(document).ready(function(){
 		
-		
+		document.title = viewModel.t.app.title;
 		function gup(name) { // thanks to: http://www.netlobo.com/url_query_string_javascript.html
 			name = name.replace(/[\[]/,"\\\[").replace(/[\]]/,"\\\]");
 			var regexS = "[\\?&]"+name+"=([^&#]*)";
