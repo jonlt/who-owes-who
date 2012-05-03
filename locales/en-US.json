@@ -1,0 +1,21 @@
+﻿{
+	"app": {
+		"title": "Who Owes Who?"
+	},
+	
+	"columns" : {
+		"name": "Name",
+		"amount": "Amount"
+	},
+	
+	"buttons": {
+		"add": "Add",
+		"calc": "Calculate"
+	},
+	
+	"result": {
+		"owes": "owes",
+		"per-person": "Amount per person:",
+		"link-to-this": "link to this:"
+	}
+}

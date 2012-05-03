@@ -5,53 +5,64 @@
 		<meta name="viewport" content="width=device-width" />
 		<link rel="stylesheet" href="bootstrap-1.2.0.min.css">
 		<script src="http://code.jquery.com/jquery-1.7.2.min.js" type="text/javascript"></script>
-		<script src="https://raw.github.com/jquery/jquery-tmpl/master/jquery.tmpl.min.js" type="text/javascript"></script>
-		<script src="http://cloud.github.com/downloads/SteveSanderson/knockout/knockout-2.0.0.js" type="text/javascript"></script>
+		<script src="jquery.tmpl.min.js" type="text/javascript"></script>
+		<script src="knockout-2.0.0.js" type="text/javascript"></script>
+		<script src="jquery.jsperanto.js" type="text/javascript"></script>
+
+		
 		<link rel="stylesheet" href="common.css">
 		<link rel="stylesheet" media="screen and (min-device-width: 801px)" href="desktop.css" />
 		<link rel="stylesheet" media="screen and (max-device-width: 800px)" href="mobile.css" />
-		<title>Hvem Skylder Hvad</title>
+		<title id="pagetitle"></title>
 	</head>
 <body>
 
 
 <div id="main-container" >
-	<h1>Hvem Skyder Hvad?</h1>
-
-		<div id="output" class="alert-message block-message" data-bind="visible: debts().length > 0">
-			<table data-bind="template: {name:'personOutputTemplate', foreach:debts}" ></table>
-			<p>
-			Beløb pr person: <strong><span data-bind="text: perNose" ></span></strong>
-			</p>
-			<p><br/>
-				link hertil: 
-				<a data-bind="attr: { href: link}" ><span data-bind="text: link"/></a>
-			</p>
-		</div>		
-	
-		<div>
-			<table class="zebra-striped" id="input-table">
-				<thead>
-					<th>Navn</th>
-					<th>Beløb</th>
-					<th></th>
-				</thead>
-				<tbody data-bind="template: {name:'personInputTemplate', foreach:persons}" ></tbody>
-				<tfoot>
-					<tr>
-						<td colspan="2"><button class="btn r-btn" data-bind="click: addNewPerson">Tilføj</button></td>
-						<td class="r-td"><button class="btn primary r-btn" type="submit" data-bind="click: recalc">Beregn</button></td>
-					</tr>
-				</tfoot>
-			</table>
+	<div id="top">	
+		<h1 id="title" class="t">app.title</h1>
+		<div id="language">
+			<ul>
+				<a href="#" data-bind="click: setLang, attr: { href: link }">Danish</a>
+				<a href="#" data-bind="click: setLang, attr: { href: link }">English</a>
+			</ul>
 		</div>
+	</div>
+	<div id="output" class="alert-message block-message" data-bind="visible: debts().length > 0">
+		<table data-bind="template: {name:'personOutputTemplate', foreach:debts}" ></table>
+		<p id="perperson">
+			<span class="t">result.per-person</span> <strong><span data-bind="text: perNose" ></span></strong>
+		</p>
+		<p id="linktothis">
+			<span class="t">result.link-to-this</span> <a data-bind="attr: { href: link}" ><span data-bind="text: link"/></a>
+		</p>
+	</div>		
+	
+	<div>
+		<table class="zebra-striped" id="input-table">
+			<thead>
+				<tr>
+					<th id="name" class="t">columns.name</th>
+					<th id="amount" class="t">columns.amount</th>
+					<th></th>
+				</tr>
+			</thead>
+			<tbody data-bind="template: {name:'personInputTemplate', foreach:persons}" ></tbody>
+			<tfoot>
+				<tr>
+					<td colspan="2"><button class="btn r-btn t" data-bind="click: addNewPerson">buttons.add</button></td>
+					<td class="r-td"><button class="btn primary r-btn t" type="submit" data-bind="click: recalc">buttons.calc</button></td>
+				</tr>
+			</tfoot>
+		</table>
+	</div>
 </div>
 
 
 <script id="personInputTemplate" type="text/html">
 <tr>
-	<td><input type="text" placeholder="navn" data-bind="value: name" /></td>
-	<td><input type="text" placeholder="beløb" data-bind="value: amount, event: {change: update}" /></td>
+	<td><input type="text" data-bind="value: name" /></td>
+	<td><input type="text" data-bind="value: amount, event: {change: update}" /></td>
 	<td class="r-td"><button class="btn danger r-btn" data-bind="click: remove" >X</button></td>
 </tr>
 </script>
@@ -59,13 +70,14 @@
 <script id="personOutputTemplate" type="text/html">
 <tr>
 	<td><strong><span class="name" data-bind="text: giver.name" /></strong></td>
-	<td>skylder</td>
+	<td class="t">result.owes</td>
 	<td><strong><span class="name" data-bind="text: taker.name" /></strong></td>
 	<td><span data-bind="text: amount.toFixed(2)" /></td>
 </tr>
 </script>
 
 <script>
+
 	function Person(name, amount){
 		return {
 			name: ko.observable(name),
@@ -187,6 +199,7 @@
 		recalc : function(){
 			this.calculator.calculate(this.persons, this.debts, this.perNose);
 			this.updateLink();
+			this.retranslate();
 		},
 		
 		updateLink : function(){
@@ -205,6 +218,32 @@
 			amounts = amounts.join(",");
 			var params = "?names="+names+"&amounts="+amounts;
 			this.link(url+params);
+		},
+		
+		setLang : function(m,e){
+		
+			var language = e.currentTarget.innerHTML;
+			var lang = "da-DK";
+			if(language == "Danish") {
+				lang = "da-DK";
+			} else if(language == "English") {
+				lang = "en-US";
+			}
+			
+			var exdate=new Date();
+			exdate.setDate(exdate.getDate() + 30);
+			var c_value=escape(lang) + "; expires="+exdate.toUTCString();
+			document.cookie="lang" + "=" + c_value;
+
+			return true;
+		},
+		
+		retranslate : function(){
+			$('.t').each(function(){
+				if($.t) {
+					$(this).text($.t($(this).text()));
+				}
+			});			
 		}
 	};
 
@@ -214,8 +253,8 @@
 	
 	$(document).ready(function(){
 		
-		function gup(name) // thanks to: http://www.netlobo.com/url_query_string_javascript.html
-		{
+		
+		function gup(name) { // thanks to: http://www.netlobo.com/url_query_string_javascript.html
 			name = name.replace(/[\[]/,"\\\[").replace(/[\]]/,"\\\]");
 			var regexS = "[\\?&]"+name+"=([^&#]*)";
 			var regex = new RegExp( regexS );
@@ -226,13 +265,24 @@
 				return results[1];
 		}		
 		
+		function getCookie(c_name) {
+			var i,x,y,ARRcookies=document.cookie.split(";");
+			for (i=0;i<ARRcookies.length;i++) {
+				x=ARRcookies[i].substr(0,ARRcookies[i].indexOf("="));
+				y=ARRcookies[i].substr(ARRcookies[i].indexOf("=")+1);
+				x=x.replace(/^\s+|\s+$/g,"");
+				if (x==c_name) {
+					return unescape(y);
+				}
+			}
+		}
 		
 		// load potential params
 		var url = document.location.toString();
 		
 		if (url.indexOf("?") != -1) {
-		  var names = gup("names").split(",");
-		  var amounts = gup("amounts").split(",")
+		  var names = unescape(gup("names")).split(",");
+		  var amounts = unescape(gup("amounts")).split(",")
 		  for(var i = 0; i < names.length; i++){
 			viewModel.addPerson(names[i],amounts[i]);
 		  }
@@ -241,6 +291,19 @@
 		} else {
 			viewModel.addPerson("","");
 		}
+		
+		
+		var language = getCookie("language");
+	
+		if(language == null || language == "") language = false;
+		
+		// set language
+		$.jsperanto.init(function(t) {
+			$('.t').each(function(){
+				$(this).text(t($(this).text()));
+			});
+		}, { lang : language });		
+		
 	});
 	
 </script>

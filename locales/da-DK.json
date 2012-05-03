@@ -1,0 +1,21 @@
+﻿{
+	"app": {
+		"title": "Hvem Skylder Hvad?"
+	},
+	
+	"columns" : {
+		"name": "Navn",
+		"amount": "Beløb"
+	},
+	
+	"buttons": {
+		"add": "Tilføj",
+		"calc": "Beregn"
+	},
+	
+	"result": {
+		"owes": "skylder",
+		"per-person": "Beløb pr person:",
+		"link-to-this": "link hertil:"
+	}
+}
