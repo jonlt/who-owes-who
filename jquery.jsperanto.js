@@ -133,11 +133,16 @@
 		return currentLang;
 	}
 	
+	function dic(){
+		return dictionary;
+	}
+	
 	$.jsperanto = $.jsperanto || {
 		init:init,
 		t:translate,
 		translate:translate,
 		detectLanguage : detectLanguage,
-		lang : lang
+		lang : lang,
+		dic : dic
 	};
 })(jQuery);

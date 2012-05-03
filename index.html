@@ -3,30 +3,34 @@
 <html lang="en">
 <head>
 		<meta name="viewport" content="width=device-width" />
-		<link rel="stylesheet" href="bootstrap-1.2.0.min.css">
-		<script src="http://code.jquery.com/jquery-1.7.2.min.js" type="text/javascript"></script>
-		<script src="jquery.tmpl.min.js" type="text/javascript"></script>
-		<script src="knockout-2.0.0.js" type="text/javascript"></script>
-		<script src="jquery.jsperanto.js" type="text/javascript"></script>
-
 		
-		<link rel="stylesheet" href="common.css">
-		<link rel="stylesheet" media="screen and (min-device-width: 801px)" href="desktop.css" />
-		<link rel="stylesheet" media="screen and (max-device-width: 800px)" href="mobile.css" />
+		<script src="http://code.jquery.com/jquery-1.7.2.min.js?vers=2" type="text/javascript"></script>
+		<script src="jquery.tmpl.min.js?vers=2" type="text/javascript"></script>
+		<script src="knockout-2.0.0.js?vers=2" type="text/javascript"></script>
+		<script src="jquery.jsperanto.js?vers=2" type="text/javascript"></script>
+
+		<link rel="stylesheet" href="bootstrap-1.2.0.min.css?vers=2">
+		<link rel="stylesheet" href="common.css?vers=2">
+		<link rel="stylesheet" media="screen and (min-device-width: 801px)" href="desktop.css?vers=2" />
+		<link rel="stylesheet" media="screen and (max-device-width: 800px)" href="mobile.css?vers=2" />
 		<title id="pagetitle"></title>
 	</head>
 <body>
 
 
 <div id="main-container" >
-	<h1 id="title" class="t">app.title</h1>
+	<h1 id="title" data-bind="text: t.app.title">Hvem Skyder Hvem?</h1>
+	<div class="alert-message block-message" data-bind="visible: debts().length == 0">
+		<p data-bind="text: t.app.help1">I skylder hinanden penge, men kan ikke finde ud af hvor meget, eller til hvem?</p>
+		<p data-bind="text: t.app.help2">Tilføj en linje for hver af jer herunder med navn og det bidragede beløb, og tryk beregn</p>
+	</div>
 	<div id="output" class="alert-message block-message" data-bind="visible: debts().length > 0">
 		<table data-bind="template: {name:'personOutputTemplate', foreach:debts}" ></table>
 		<p id="perperson">
-			<span class="t">result.per-person</span> <strong><span data-bind="text: perNose" ></span></strong>
+			<span data-bind="text: t.result.per_person">Beløb pr person:</span> <strong><span data-bind="text: perNose" ></span></strong>
 		</p>
 		<p id="linktothis">
-			<span class="t">result.link-to-this</span> <a data-bind="attr: { href: link}" ><span data-bind="text: link"/></a>
+			<span data-bind="text: t.result.link_to_this">link hertil:</span> <a data-bind="attr: { href: link}" ><span data-bind="text: link"/></a>
 		</p>
 	</div>		
 	
@@ -34,16 +38,16 @@
 		<table class="zebra-striped" id="input-table">
 			<thead>
 				<tr>
-					<th id="name" class="t">columns.name</th>
-					<th id="amount" class="t">columns.amount</th>
+					<th id="name" data-bind="text: t.columns.name">Navn</th>
+					<th id="amount" data-bind="text: t.columns.amount">Beløb</th>
 					<th></th>
 				</tr>
 			</thead>
 			<tbody data-bind="template: {name:'personInputTemplate', foreach:persons}" ></tbody>
 			<tfoot>
 				<tr>
-					<td colspan="2"><button class="btn r-btn t" data-bind="click: addNewPerson">buttons.add</button></td>
-					<td class="r-td"><button class="btn primary r-btn t" type="submit" data-bind="click: recalc">buttons.calc</button></td>
+					<td colspan="2"><button class="btn r-btn" data-bind="click: addNewPerson, text: t.buttons.add">Tilføj</button></td>
+					<td class="r-td"><button class="btn primary r-btn t" type="submit" data-bind="click: recalc, text: t.buttons.calc">Beregn</button></td>
 				</tr>
 			</tfoot>
 		</table>
@@ -71,7 +75,7 @@
 <script id="personOutputTemplate" type="text/html">
 <tr>
 	<td><strong><span class="name" data-bind="text: giver.name" /></strong></td>
-	<td class="t">result.owes</td>
+	<td data-bind="text: t.result.owes">skylder</td>
 	<td><strong><span class="name" data-bind="text: taker.name" /></strong></td>
 	<td><span data-bind="text: amount.toFixed(2)" /></td>
 </tr>
@@ -181,6 +185,30 @@
 		}
 	}	
 	
+	function getCookie(c_name) {
+		var i,x,y,ARRcookies=document.cookie.split(";");
+		for (i=0;i<ARRcookies.length;i++) {
+			x=ARRcookies[i].substr(0,ARRcookies[i].indexOf("="));
+			y=ARRcookies[i].substr(ARRcookies[i].indexOf("=")+1);
+			x=x.replace(/^\s+|\s+$/g,"");
+			if (x==c_name) {
+				return unescape(y);
+			}
+		}
+	}	
+	
+	// set language
+	var language = getCookie("lang");
+	if(language == null || language == "") language = false;
+	
+	$.jsperanto.init(function(t) {
+		viewModel.t = $.jsperanto.dic();
+		ko.applyBindings(viewModel);
+	}, { lang : language });	
+	
+	
+	
+	
 	var viewModel = {
 		calculator : new Calculator(),
 		persons: ko.observableArray(),
@@ -200,7 +228,6 @@
 		recalc : function(){
 			this.calculator.calculate(this.persons, this.debts, this.perNose);
 			this.updateLink();
-			this.retranslate();
 		},
 		
 		updateLink : function(){
@@ -209,16 +236,23 @@
 			if (url.indexOf("?") != -1) {
 			  var url = url.split('?')[0];
 			}
+			
 			var names = [];
 			var amounts = [];
 			for(var i = 0; i < this.persons().length; i++){
 				names.push(this.persons()[i].name());
 				amounts.push(this.persons()[i].getAmount());
 			}
+			
 			names = names.join(",");
 			amounts = amounts.join(",");
-			var params = "?names="+names+"&amounts="+amounts;
-			this.link(url+params);
+
+			if(names =! null && names != ""){
+				var params = "names="+names+"&amounts="+amounts;
+				this.link(url+"?"+params);
+			} else {
+				this.link("");
+			}
 		},
 		
 		setLang : function(m,e){
@@ -239,17 +273,13 @@
 			return true;
 		},
 		
-		retranslate : function(){
-			$('.t').each(function(){
-				if($.t) {
-					$(this).text($.t($(this).text()));
-				}
-			});			
-		},
+		t : $.jsperanto.dic(),
 		
 	};
 
-	ko.applyBindings(viewModel);
+	
+	
+	//ko.applyBindings(viewModel);
 	
 	
 	
@@ -267,51 +297,36 @@
 				return results[1];
 		}		
 		
-		function getCookie(c_name) {
-			var i,x,y,ARRcookies=document.cookie.split(";");
-			for (i=0;i<ARRcookies.length;i++) {
-				x=ARRcookies[i].substr(0,ARRcookies[i].indexOf("="));
-				y=ARRcookies[i].substr(ARRcookies[i].indexOf("=")+1);
-				x=x.replace(/^\s+|\s+$/g,"");
-				if (x==c_name) {
-					return unescape(y);
-				}
-			}
-		}
-		
+	
 		// load potential params
 		var url = document.location.toString();
 		
-		if (url.indexOf("?") != -1) {
-		  var names = unescape(gup("names")).split(",");
-		  var amounts = unescape(gup("amounts")).split(",")
-		  for(var i = 0; i < names.length; i++){
-			viewModel.addPerson(names[i],amounts[i]);
-		  }
-		  viewModel.recalc();
-		  
+		if (url.indexOf("?")) {
+			console.log(gup("names"));
+			var names = unescape(gup("names")).split(",");
+			var amounts = unescape(gup("amounts")).split(",")
+			for(var i = 0; i < names.length; i++){
+				viewModel.addPerson(names[i],amounts[i]);
+			}
+			viewModel.recalc();
+
 		} else {
 			viewModel.addPerson("","");
 		}
 		
 		
-		var language = getCookie("lang");
+		
+		
+
+		
 	
-		if(language == null || language == "") language = false;
-		
-		// set language
-		$.jsperanto.init(function(t) {
-			$('.t').each(function(){
-				$(this).text(t($(this).text()));
-			});
-		}, { lang : language });		
-		
 		// hook up the language changer
 		$('#change-language').click(function(){
 			$(this).remove();
 			$("#language-selector").show();
 			return false;
 		});
+		
 		
 	});
 	
