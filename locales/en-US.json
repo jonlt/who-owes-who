@@ -1,6 +1,7 @@
 ﻿{
 	"app": {
-		"title": "Who Owes Who?"
+		"title": "Who Owes Who?",
+		"set-lang": "Language"
 	},
 	
 	"columns" : {

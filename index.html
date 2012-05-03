@@ -19,15 +19,7 @@
 
 
 <div id="main-container" >
-	<div id="top">	
-		<h1 id="title" class="t">app.title</h1>
-		<div id="language">
-			<ul>
-				<a href="#" data-bind="click: setLang, attr: { href: link }">Danish</a>
-				<a href="#" data-bind="click: setLang, attr: { href: link }">English</a>
-			</ul>
-		</div>
-	</div>
+	<h1 id="title" class="t">app.title</h1>
 	<div id="output" class="alert-message block-message" data-bind="visible: debts().length > 0">
 		<table data-bind="template: {name:'personOutputTemplate', foreach:debts}" ></table>
 		<p id="perperson">
@@ -56,6 +48,15 @@
 			</tfoot>
 		</table>
 	</div>
+	
+	<div id="language">
+		<a href="#" id="change-language">Change Language</a>
+		<div id="language-selector">
+			<a href="" data-bind="click: setLang, attr: {href: link}">Danish</a>
+			<a href="" data-bind="click: setLang, attr: {href: link}">English</a>
+		</div>	
+	</div>
+
 </div>
 
 
@@ -244,7 +245,8 @@
 					$(this).text($.t($(this).text()));
 				}
 			});			
-		}
+		},
+		
 	};
 
 	ko.applyBindings(viewModel);
@@ -293,7 +295,7 @@
 		}
 		
 		
-		var language = getCookie("language");
+		var language = getCookie("lang");
 	
 		if(language == null || language == "") language = false;
 		
@@ -303,6 +305,13 @@
 				$(this).text(t($(this).text()));
 			});
 		}, { lang : language });		
+		
+		// hook up the language changer
+		$('#change-language').click(function(){
+			$(this).remove();
+			$("#language-selector").show();
+			return false;
+		});
 		
 	});
 	

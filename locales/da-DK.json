@@ -1,6 +1,7 @@
 ﻿{
 	"app": {
-		"title": "Hvem Skylder Hvad?"
+		"title": "Hvem Skylder Hvad?",
+		"set-lang": "Sprog"
 	},
 	
 	"columns" : {

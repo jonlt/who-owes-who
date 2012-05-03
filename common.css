@@ -3,3 +3,5 @@
 .r-td { width:80px; }
 input[type="text"] {width:100%;}
 #output {color:#000;}
+#language { float:right;}
+#language-selector {display:none;}
