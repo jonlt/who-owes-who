@@ -19,7 +19,7 @@
 
 
 <div id="main-container" >
-	<h1 id="title" data-bind="text: t.app.title">Hvem Skyder Hvem?</h1>
+	<h1 id="title" data-bind="text: t.app.title">Hvem Skylder Hvad?</h1>
 	<div class="alert-message block-message" data-bind="visible: debts().length == 0">
 		<p data-bind="text: t.app.help1">I skylder hinanden penge, men kan ikke finde ud af hvor meget, eller til hvem?</p>
 		<p data-bind="text: t.app.help2">Tilføj en linje for hver af jer herunder med navn og det bidragede beløb, og tryk beregn</p>
@@ -204,6 +204,7 @@
 	$.jsperanto.init(function(t) {
 		viewModel.t = $.jsperanto.dic();
 		ko.applyBindings(viewModel);
+		document.title = viewModel.t.app.title;
 	}, { lang : language });	
 	
 	
@@ -285,7 +286,7 @@
 	
 	$(document).ready(function(){
 		
-		document.title = viewModel.t.app.title;
+		
 		function gup(name) { // thanks to: http://www.netlobo.com/url_query_string_javascript.html
 			name = name.replace(/[\[]/,"\\\[").replace(/[\]]/,"\\\]");
 			var regexS = "[\\?&]"+name+"=([^&#]*)";
