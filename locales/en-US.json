@@ -2,7 +2,7 @@
 	"app": {
 		"title": "Who Owes Who?",
 		"help1": "You owe each other money, but you can't figure out how much or to whom?",
-		"help2": "Add a line below for each of you, including your name and the amount contributed, and pres Calculate."
+		"help2": "Add a line below for each of you, including your name and the amount contributed, and press Calculate."
 	},
 	
 	"columns" : {

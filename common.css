@@ -1,3 +1,4 @@
+html, body {height:100%;}
 .name {font-size:20px; width:300px;}
 .r-btn {  width:75px; }
 .r-td { width:80px; }
@@ -5,3 +6,4 @@ input[type="text"] {width:100%;}
 #output {color:#000;}
 #language { float:right;}
 #language-selector {display:none;}
+#tech {font-size:10px;}
