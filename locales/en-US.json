@@ -17,7 +17,7 @@
 	
 	"result": {
 		"owes": "owes",
-		"per-person": "Amount per person:",
-		"link-to-this": "link to this:"
+		"per_person": "Amount per person:",
+		"link_to_this": "link to this:"
 	}
 }
