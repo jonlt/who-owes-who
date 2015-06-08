@@ -1,0 +1,347 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+		<meta name="viewport" content="width=device-width" />
+		<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+		
+		<script src="http://code.jquery.com/jquery-1.7.2.min.js?vers=d182f59" type="text/javascript"></script>
+		<script src="jquery.tmpl.min.js?vers=d182f59" type="text/javascript"></script>
+		<script src="knockout-2.0.0.js?vers=d182f59" type="text/javascript"></script>
+		<script src="jquery.jsperanto.js?vers=d182f59" type="text/javascript"></script>
+
+		<link rel="stylesheet" href="bootstrap-1.2.0.min.css?vers=d182f59">
+		<link rel="stylesheet" href="common.css?vers=d182f59">
+		<link rel="stylesheet" media="screen and (min-device-width: 801px)" href="desktop.css?vers=d182f59" />
+		<link rel="stylesheet" media="screen and (max-device-width: 800px)" href="mobile.css?vers=d182f59" />
+		<title id="pagetitle" data-bind="text: t.app.title">Hvem Skylder Hvad</title>
+	</head>
+<body>
+
+
+<div id="main-container" >
+	<h1 id="title" data-bind="text: t.app.title">Hvem Skylder Hvad?</h1>
+	<div class="alert-message block-message" data-bind="visible: debts().length == 0">
+		<p data-bind="text: t.app.help1">I skylder hinanden penge, men kan ikke finde ud af hvor meget, eller til hvem?</p>
+		<p data-bind="text: t.app.help2">Tilføj en linje for hver af jer herunder med navn og det bidragede beløb, og tryk beregn</p>
+	</div>
+	<div id="output" class="alert-message block-message" data-bind="visible: debts().length > 0">
+		<table data-bind="template: {name:'personOutputTemplate', foreach:debts}" ></table>
+		<p id="perperson">
+			<span data-bind="text: t.result.per_person">Beløb pr person:</span> <strong><span data-bind="text: perNose" ></span></strong>
+		</p>
+		<p id="linktothis">
+			<span data-bind="text: t.result.link_to_this">link hertil:</span> <a data-bind="attr: { href: link}" ><span data-bind="text: link"/></a>
+		</p>
+	</div>		
+	
+	<div>
+		<table class="zebra-striped" id="input-table">
+			<thead>
+				<tr>
+					<th id="name" data-bind="text: t.columns.name">Navn</th>
+					<th id="amount" data-bind="text: t.columns.amount">Beløb</th>
+					<th></th>
+				</tr>
+			</thead>
+			<tbody data-bind="template: {name:'personInputTemplate', foreach:persons}" ></tbody>
+			<tfoot>
+				<tr>
+					<td colspan="2"><button class="btn r-btn" data-bind="click: addNewPerson, text: t.buttons.add">Tilføj</button></td>
+					<td class="r-td"><button class="btn primary r-btn t" type="submit" data-bind="click: recalc, text: t.buttons.calc">Beregn</button></td>
+				</tr>
+			</tfoot>
+		</table>
+	</div>
+	
+	<div id="language">
+		<a href="#" id="change-language">Change Language</a>
+		<div id="language-selector">
+			<a href="" data-bind="click: setLang, attr: {href: link}">Danish</a>
+			<a href="" data-bind="click: setLang, attr: {href: link}">English</a>
+		</div>	
+	</div>
+	
+	<div id="tech">
+		Tech:
+		<a href="http://knockoutjs.com/">Knockout.js</a> |
+		<a href="http://jquery.com/">jQuery</a> |
+		<a href="https://github.com/jquery/jquery-tmpl/">jQuery Templates</a> |
+		<a href="https://github.com/jpjoyal/jsperanto/">jsperanto</a> |
+		<a href="http://twitter.github.com/bootstrap/">Twitter Boostrap</a>
+	</div>	
+	
+</div>
+
+
+
+<script id="personInputTemplate" type="text/html">
+<tr>
+	<td><input type="text" data-bind="value: name" /></td>
+	<td><input type="text" data-bind="value: amount, event: {change: update}" /></td>
+	<td class="r-td"><button class="btn danger r-btn" data-bind="click: remove" >X</button></td>
+</tr>
+</script>
+
+<script id="personOutputTemplate" type="text/html">
+<tr>
+	<td><strong><span class="name" data-bind="text: giver.name" /></strong></td>
+	<td data-bind="text: $parent.t.result.owes">skylder</td>
+	<td><strong><span class="name" data-bind="text: taker.name" /></strong></td>
+	<td><span data-bind="text: amount.toFixed(2)" /></td>
+</tr>
+</script>
+
+<script>
+
+	function Person(name, amount){
+		return {
+			name: ko.observable(name),
+			amount: ko.observable(amount),
+			remove: function(){
+				if(viewModel.persons().length == 1){ // dont remove the last person
+					this.name("");
+					this.amount("");
+				} else {
+					viewModel.persons.remove(this);
+					setTimeout(function(){
+						viewModel.recalc();
+					} ,500);
+				}
+			},
+			getAmount: function(){
+				return parseInt(this.amount());
+			},
+			update: function(){
+				setTimeout(function(){
+					viewModel.recalc();
+				} ,500);
+			}
+		};
+	};
+	
+	function Dept(giver, taker, amount){
+		return {
+			giver: giver,
+			taker: taker,
+			amount: amount
+		}
+	};
+
+	function Calculator() {
+		return {
+			calculate : function(persons, debts, perNose){
+
+				var total_value = 0;
+
+				var person_count = 0;
+
+				for(var i = 0; i < persons().length; i++){
+					value = persons()[i].getAmount();
+					if(isNaN(value)){
+						continue;
+					}
+					total_value += value;
+					person_count++;
+				}
+
+				var per_nose_value = total_value / person_count;
+				var owers = [];
+
+				perNose(per_nose_value.toFixed(2));
+
+				for(var i = 0; i < persons().length; i++){
+					if(persons()[i].getAmount() != per_nose_value){
+						if(isNaN(persons()[i].getAmount())){
+							continue;
+						}					
+						owers.push({
+									amount: persons()[i].getAmount(), 
+									name: persons()[i].name
+								  });
+					}
+				}		
+
+				// BUBBLESORT the owers array
+				var x, y, holder;
+				for(x = 0; x < owers.length; x++) {
+					for(y = 0; y < (owers.length-1); y++) {
+						if(owers[y].amount > owers[y+1].amount) {
+							holder = owers[y+1];
+							owers[y+1] = owers[y];
+							owers[y] = holder;
+						}
+					}
+				}
+
+				var i = 0;
+				var j = owers.length - 1;
+				var iterations = 0;
+				var transfer = 0;
+				debts([]); // clear
+
+				while(i < j && iterations < 100) {
+					transfer = Math.min(per_nose_value - owers[i].amount, owers[j].amount - per_nose_value);
+					
+					owers[i].amount += transfer;
+					owers[j].amount -= transfer;
+					
+					debts.push(new Dept(owers[i], owers[j], transfer));
+					
+					if(owers[i].amount == per_nose_value) i++;
+					if(owers[j].amount == per_nose_value) j--;
+					iterations++;
+				}
+			}
+		}
+	}	
+	
+	function getCookie(c_name) {
+		var i,x,y,ARRcookies=document.cookie.split(";");
+		for (i=0;i<ARRcookies.length;i++) {
+			x=ARRcookies[i].substr(0,ARRcookies[i].indexOf("="));
+			y=ARRcookies[i].substr(ARRcookies[i].indexOf("=")+1);
+			x=x.replace(/^\s+|\s+$/g,"");
+			if (x==c_name) {
+				return unescape(y);
+			}
+		}
+	}	
+	
+	// set language
+	var language = getCookie("lang");
+	if(language == null || language == "") language = false;
+	
+	$.jsperanto.init(function(t) {
+		viewModel.t = $.jsperanto.dic();
+		ko.applyBindings(viewModel);
+		document.title = viewModel.t.app.title;
+	}, { lang : language });	
+	
+	
+	
+	
+	var viewModel = {
+		calculator : new Calculator(),
+		persons: ko.observableArray(),
+		debts: ko.observableArray(),
+		perNose: ko.observable(),
+		link: ko.observable(),
+		
+		addPerson: function(name, amount){
+			this.persons.push(new Person(name,amount));
+		},
+		addNewPerson: function(){
+			this.persons.push(new Person("",""));
+			this.recalc();
+			$('#input-table tbody tr:last input:first').focus();
+		},
+		
+		recalc : function(){
+			this.calculator.calculate(this.persons, this.debts, this.perNose);
+			this.updateLink();
+		},
+		
+		updateLink : function(){
+			var url = document.location.toString();
+			// remove current params (if any)
+			if (url.indexOf("?") != -1) {
+			  var url = url.split('?')[0];
+			}
+			
+			var names = [];
+			var amounts = [];
+			for(var i = 0; i < this.persons().length; i++){
+				names.push(this.persons()[i].name());
+				amounts.push(this.persons()[i].getAmount());
+			}
+			
+			names = names.join(",");
+			amounts = amounts.join(",");
+
+			if(names != null && names != ""){
+				var params = "names="+names+"&amounts="+amounts;
+				this.link(url+"?"+params);
+			} else {
+				this.link("");
+			}
+		},
+		
+		setLang : function(m,e){
+		
+			var language = e.currentTarget.innerHTML;
+			var lang = "da-DK";
+			if(language == "Danish") {
+				lang = "da-DK";
+			} else if(language == "English") {
+				lang = "en-US";
+			}
+			
+			var exdate=new Date();
+			exdate.setDate(exdate.getDate() + 30);
+			var c_value=escape(lang) + "; expires="+exdate.toUTCString();
+			document.cookie="lang" + "=" + c_value;
+
+			return true;
+		},
+		
+		t : $.jsperanto.dic()
+		
+	};
+
+	
+	
+	//ko.applyBindings(viewModel);
+	
+	
+	
+	$(document).ready(function(){
+		
+		
+		function gup(name) { // thanks to: http://www.netlobo.com/url_query_string_javascript.html
+			name = name.replace(/[\[]/,"\\\[").replace(/[\]]/,"\\\]");
+			var regexS = "[\\?&]"+name+"=([^&#]*)";
+			var regex = new RegExp( regexS );
+			var results = regex.exec( window.location.href );
+			if( results == null )
+				return "";
+			else
+				return results[1];
+		}		
+		
+	
+		// load potential params
+		var url = document.location.toString();
+		
+		if (url.indexOf("?")) {
+			console.log(gup("names"));
+			var names = unescape(gup("names")).split(",");
+			var amounts = unescape(gup("amounts")).split(",")
+			for(var i = 0; i < names.length; i++){
+				viewModel.addPerson(names[i],amounts[i]);
+			}
+			viewModel.recalc();
+
+		} else {
+			viewModel.addPerson("","");
+		}
+		
+		
+		
+		
+
+		
+	
+		// hook up the language changer
+		$('#change-language').click(function(){
+			$(this).remove();
+			$("#language-selector").show();
+			return false;
+		});
+		
+		
+	});
+	
+</script>
+
+</body>
+</html>

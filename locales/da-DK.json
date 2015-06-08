@@ -1,0 +1,23 @@
+﻿{
+	"app": {
+		"title": "Hvem Skylder Hvad?",
+		"help1": "I skylder hinanden penge, men kan ikke finde ud af hvor meget, eller til hvem?",
+		"help2": "Tilføj en linje for hver af jer herunder med navn og det bidragede beløb, og tryk Beregn."
+	},
+	
+	"columns" : {
+		"name": "Navn",
+		"amount": "Beløb"
+	},
+	
+	"buttons": {
+		"add": "Tilføj",
+		"calc": "Beregn"
+	},
+	
+	"result": {
+		"owes": "skylder",
+		"per_person": "Beløb pr person:",
+		"link_to_this": "link hertil:"
+	}
+}
