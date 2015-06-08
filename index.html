@@ -26,6 +26,9 @@
 	</div>
 	<div id="output" class="alert-message block-message" data-bind="visible: debts().length > 0">
 		<table data-bind="template: {name:'personOutputTemplate', foreach:debts}" ></table>
+		<p id="total">
+			<span data-bind="text: t.result.total">Beløb i alt:</span> <strong><span data-bind="text: total" ></span></strong>
+		</p>	
 		<p id="perperson">
 			<span data-bind="text: t.result.per_person">Beløb pr person:</span> <strong><span data-bind="text: perNose" ></span></strong>
 		</p>
@@ -109,7 +112,7 @@
 				}
 			},
 			getAmount: function(){
-				return parseInt(this.amount());
+				return parseFloat(this.amount());
 			},
 			update: function(){
 				setTimeout(function(){
@@ -129,7 +132,7 @@
 
 	function Calculator() {
 		return {
-			calculate : function(persons, debts, perNose){
+			calculate : function(persons, debts, perNose, total){
 
 				var total_value = 0;
 
@@ -146,7 +149,7 @@
 
 				var per_nose_value = total_value / person_count;
 				var owers = [];
-
+				total(total_value.toFixed(2));
 				perNose(per_nose_value.toFixed(2));
 
 				for(var i = 0; i < persons().length; i++){
@@ -226,6 +229,7 @@
 		debts: ko.observableArray(),
 		perNose: ko.observable(),
 		link: ko.observable(),
+		total: ko.observable(),
 		
 		addPerson: function(name, amount){
 			this.persons.push(new Person(name,amount));
@@ -237,7 +241,7 @@
 		},
 		
 		recalc : function(){
-			this.calculator.calculate(this.persons, this.debts, this.perNose);
+			this.calculator.calculate(this.persons, this.debts, this.perNose, this.total);
 			this.updateLink();
 		},
 		
@@ -251,8 +255,8 @@
 			var names = [];
 			var amounts = [];
 			for(var i = 0; i < this.persons().length; i++){
-				names.push(this.persons()[i].name());
-				amounts.push(this.persons()[i].getAmount());
+				names.push(escape(this.persons()[i].name()));
+				amounts.push(escape(this.persons()[i].getAmount()));
 			}
 			
 			names = names.join(",");

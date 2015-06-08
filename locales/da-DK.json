@@ -18,6 +18,7 @@
 	"result": {
 		"owes": "skylder",
 		"per_person": "Beløb pr person:",
-		"link_to_this": "link hertil:"
+		"link_to_this": "link hertil:",
+		"total": "Beløb i alt:"
 	}
 }
