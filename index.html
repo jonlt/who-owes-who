@@ -76,7 +76,7 @@
 
 <script id="personInputTemplate" type="text/html">
 <tr>
-	<td><input type="text" data-bind="value: name" /></td>
+	<td><input type="text" data-bind="value: name, event: {change: update}" /></td>
 	<td><input type="text" data-bind="value: amount, event: {change: update}" /></td>
 	<td class="r-td"><button class="btn danger r-btn" data-bind="click: remove" >X</button></td>
 </tr>
